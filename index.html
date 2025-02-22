@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fiber Link Budget Calculator</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .input-hint {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 3px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        button {
+            background-color: #0088cc;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        button.reset {
+            background-color: #cc0000;
+            margin-top: 5px;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        
+        .power-visual {
+            height: 20px;
+            background: linear-gradient(90deg, #d33 0%, #ff0 30%, #2b2 70%, #d33 100%);
+            position: relative;
+            margin: 10px 0;
+        }
+        
+        .power-marker {
+            position: absolute;
+            top: -5px;
+            width: 2px;
+            height: 30px;
+            background: #000;
+        }
+        
+        .spec-range {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 0.9em;
+            color: #555;
+        }
+        
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .status.good {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .status.warning {
+            background-color: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .status.error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Fiber Optic Link Budget Calculator</h2>
+        
+        <!-- Transmitter/Receiver Section -->
+        <div class="input-group">
+            <label>Transmitter Power (dBm):</label>
+            <input type="number" step="0.01" id="txPower" required>
+            <div class="input-hint">Contoh: 0 dBm sampai +5 dBm</div>
+        </div>
+        
+        <div class="input-group">
+            <label>Receiver Sensitivity (dBm):</label>
+            <input type="number" step="0.01" id="rxSensitivity" value="-23" required>
+            <div class="input-hint">Rentang normal ONT: -14dBm hingga -23dBm</div>
+        </div>
+
+        <!-- Connectors Section -->
+        <div class="input-group">
+            <label>SC/UPC Connectors:</label>
+            <input type="number" id="connectorUPC" value="2" required>
+            <div class="input-hint">(0.25 dB per konektor)</div>
+        </div>
+        
+        <div class="input-group">
+            <label>SC/APC Connectors:</label>
+            <input type="number" id="connectorAPC" value="0" required>
+            <div class="input-hint">(0.35 dB per konektor)</div>
+        </div>
+        
+        <div class="input-group">
+            <label>Terminasi:</label>
+            <input type="number" id="terminasi" value="2" required>
+            <div class="input-hint">(0.5 dB per titik terminasi)</div>
+        </div>
+
+        <!-- Splitters Section -->
+        <div class="input-group">
+            <label>Splitter 1:2</label>
+            <input type="number" id="splitter2" value="0">
+            <div class="input-hint">(3.7 dB per splitter)</div>
+        </div>
+        
+        <div class="input-group">
+            <label>Splitter 1:4</label>
+            <input type="number" id="splitter4" value="0">
+            <div class="input-hint">(7.25 dB per splitter)</div>
+        </div>
+        
+        <div class="input-group">
+            <label>Splitter 1:8</label>
+            <input type="number" id="splitter8" value="0">
+            <div class="input-hint">(10.38 dB per splitter)</div>
+        </div>
+        
+        <div class="input-group">
+            <label>Splitter 1:16</label>
+            <input type="number" id="splitter16" value="0">
+            <div class="input-hint">(14.10 dB per splitter)</div>
+        </div>
+        
+        <div class="input-group">
+            <label>Splitter 1:32</label>
+            <input type="number" id="splitter32" value="0">
+            <div class="input-hint">(17.45 dB per splitter)</div>
+        </div>
+
+        <!-- Fiber Parameters -->
+        <div class="input-group">
+            <label>Panjang Fiber (km):</label>
+            <input type="number" step="0.01" id="fiberLength" required>
+        </div>
+
+        <button onclick="calculate()">Hitung Link Budget</button>
+        <button class="reset" onclick="resetForm()">Reset</button>
+        
+        <div id="result" class="result"></div>
+        <div class="power-visual" id="powerVisual">
+            <div class="spec-range">
+                <span>-27dBm</span>
+                <span>-14dBm</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Fungsi untuk memastikan input tidak kosong
+        function validateInputs() {
+            const inputs = document.querySelectorAll('input[type="number"]');
+            inputs.forEach(input => {
+                if (input.value === '' || isNaN(input.value)) {
+                    input.value = 0; // Jika kosong atau bukan angka, set ke 0
+                }
+            });
+        }
+
+        // Fungsi reset form
+        function resetForm() {
+            const inputs = document.querySelectorAll('input[type="number"]');
+            inputs.forEach(input => {
+                input.value = 0; // Set semua input ke 0
+            });
+            document.getElementById('result').innerHTML = ''; // Hapus hasil
+            document.getElementById('powerVisual').innerHTML = `
+                <div class="spec-range">
+                    <span>-27dBm</span>
+                    <span>-14dBm</span>
+                </div>
+            `;
+        }
+
+        // Fungsi utama kalkulasi
+        function calculate() {
+            validateInputs(); // Validasi input sebelum kalkulasi
+
+            // Get input values
+            const txPower = parseFloat(document.getElementById('txPower').value);
+            const rxSensitivity = parseFloat(document.getElementById('rxSensitivity').value);
+            
+            const connectorUPC = parseInt(document.getElementById('connectorUPC').value);
+            const connectorAPC = parseInt(document.getElementById('connectorAPC').value);
+            const terminasi = parseInt(document.getElementById('terminasi').value);
+            
+            const splitter2 = parseInt(document.getElementById('splitter2').value);
+            const splitter4 = parseInt(document.getElementById('splitter4').value);
+            const splitter8 = parseInt(document.getElementById('splitter8').value);
+            const splitter16 = parseInt(document.getElementById('splitter16').value);
+            const splitter32 = parseInt(document.getElementById('splitter32').value);
+            
+            const fiberLength = parseFloat(document.getElementById('fiberLength').value);
+
+            // Loss constants (dB)
+            const fiberAttenuation = 0.35; // dB/km
+            
+            // Calculate total loss
+            const connectorLoss = (connectorUPC * 0.25) + (connectorAPC * 0.35);
+            const splitterLoss = (splitter2 * 3.7) + (splitter4 * 7.25) + 
+                               (splitter8 * 10.38) + (splitter16 * 14.10) + 
+                               (splitter32 * 17.45);
+            const terminasiLoss = terminasi * 0.5;
+            const fiberLoss = fiberLength * fiberAttenuation;
+            
+            const totalLoss = connectorLoss + splitterLoss + terminasiLoss + fiberLoss;
+            const receivedPower = txPower - totalLoss;
+            const powerMargin = receivedPower - rxSensitivity;
+
+            // Validasi daya terima
+            let statusClass = '';
+            let statusText = '';
+            if (receivedPower >= -23 && receivedPower <= -14) {
+                statusClass = 'good';
+                statusText = '✔ Kualitas sinyal baik (sesuai standar ONT)';
+            } else if (receivedPower > -14) {
+                statusClass = 'error';
+                statusText = '⚠ Daya terlalu tinggi! Risiko kerusakan ONT';
+            } else {
+                statusClass = 'error';
+                statusText = '⚠ Daya terlalu lemah! Koneksi mungkin terputus';
+            }
+
+            // Update tampilan
+            const resultHTML = `
+                <h3>Hasil Perhitungan:</h3>
+                <p>Total Loss: <strong>${totalLoss.toFixed(2)} dB</strong></p>
+                <p>Daya Terima: <strong>${receivedPower.toFixed(2)} dBm</strong></p>
+                <p>Power Margin: <strong>${powerMargin.toFixed(2)} dB</strong></p>
+                <div class="status ${statusClass}">${statusText}</div>
+            `;
+
+            // Visualisasi daya
+            const powerVisual = document.getElementById('powerVisual');
+            const minPower = -27;  // Batas bawah visual
+            const maxPower = -14;   // Batas atas visual
+            const visualPosition = Math.min(Math.max(
+                ((receivedPower - minPower) / (maxPower - minPower)) * 100, 
+                0
+            ), 100);
+
+            powerVisual.innerHTML = `
+                <div class="power-marker" style="left: ${visualPosition}%"></div>
+                <div class="spec-range">
+                    <span>-27dBm</span>
+                    <span>-14dBm</span>
+                </div>
+            `;
+
+            document.getElementById('result').innerHTML = resultHTML;
+        }
+    </script>
+</body>
+</html>
